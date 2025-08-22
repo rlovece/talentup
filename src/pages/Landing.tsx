@@ -56,22 +56,6 @@ export default function Landing() {
             La plataforma que une a los mejores desarrolladores con las empresas más innovadoras. 
             Encuentra tu próximo desafío profesional o descubre el talento que necesitas.
           </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link to="/register">
-              <Button variant="hero" size="hero" className="w-full sm:w-auto">
-                Soy Desarrollador
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            
-            <Link to="/register">
-              <Button variant="accent" size="hero" className="w-full sm:w-auto">
-                Soy Empresa
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-          </div>
         </div>
       </section>
 
@@ -93,12 +77,6 @@ export default function Landing() {
                   Crea tu perfil profesional, muestra tus habilidades y conecta 
                   con empresas que valoran tu talento.
                 </p>
-                <Link to="/register">
-                  <Button variant="outline" className="group">
-                    Comenzar ahora
-                    <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
               </CardContent>
             </Card>
 
@@ -112,12 +90,6 @@ export default function Landing() {
                   Encuentra a los desarrolladores perfectos para tu equipo. 
                   Revisa perfiles detallados y habilidades específicas.
                 </p>
-                <Link to="/register">
-                  <Button variant="outline" className="group">
-                    Encontrar talento
-                    <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
               </CardContent>
             </Card>
 
@@ -131,10 +103,6 @@ export default function Landing() {
                   Algoritmos inteligentes que conectan el talento adecuado 
                   con las oportunidades perfectas en tiempo real.
                 </p>
-                <Button variant="outline" className="group">
-                  Más información
-                  <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </Button>
               </CardContent>
             </Card>
           </div>
