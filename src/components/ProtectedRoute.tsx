@@ -33,8 +33,8 @@ export function ProtectedRoute({ children, requireRole }: ProtectedRouteProps) {
       return;
     }
 
-    // If user is logged in but on login/register page, redirect to appropriate welcome page
-    if (user && (location.pathname === '/login' || location.pathname === '/register')) {
+    // If user is logged in but on login/register/landing page, redirect to appropriate welcome page
+    if (user && (location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/')) {
       if (profile?.role === 'developer') {
         navigate('/welcome/developer');
       } else if (profile?.role === 'company') {

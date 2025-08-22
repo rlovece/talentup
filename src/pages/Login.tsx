@@ -32,10 +32,7 @@ export default function Login() {
     
     setLoading(false);
     
-    if (!error) {
-      // Navigation will be handled by AuthProvider based on user role
-      navigate('/');
-    }
+    // Don't navigate manually - let the auth system handle the redirect
   };
 
   return (
