@@ -57,6 +57,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          // Create temporary profile from user_metadata while DB profile loads
+          const userRole = session.user.user_metadata?.role as 'developer' | 'company';
+          if (userRole) {
+            setProfile({
+              id: '', // Will be updated from DB
+              user_id: session.user.id,
+              role: userRole,
+              created_at: '',
+              updated_at: ''
+            });
+          }
+          
           // Defer profile fetch to avoid auth state listener issues
           setTimeout(() => {
             fetchProfile(session.user.id);
@@ -75,6 +87,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        // Create temporary profile from user_metadata while DB profile loads
+        const userRole = session.user.user_metadata?.role as 'developer' | 'company';
+        if (userRole) {
+          setProfile({
+            id: '',
+            user_id: session.user.id,
+            role: userRole,
+            created_at: '',
+            updated_at: ''
+          });
+        }
+        
         setTimeout(() => {
           fetchProfile(session.user.id);
         }, 0);
