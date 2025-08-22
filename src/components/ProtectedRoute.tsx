@@ -14,14 +14,18 @@ export function ProtectedRoute({ children, requireRole }: ProtectedRouteProps) {
   const location = useLocation();
 
   useEffect(() => {
+    console.log('ProtectedRoute useEffect:', { loading, user: !!user, profile, location: location.pathname, requireRole });
+    
     if (loading) return;
 
     if (!user) {
+      console.log('No user, redirecting to login');
       navigate('/login', { state: { from: location } });
       return;
     }
 
     if (requireRole && profile?.role !== requireRole) {
+      console.log('Role mismatch, redirecting based on role:', profile?.role);
       // Redirect based on user's actual role
       if (profile?.role === 'developer') {
         navigate('/welcome/developer');
@@ -35,9 +39,12 @@ export function ProtectedRoute({ children, requireRole }: ProtectedRouteProps) {
 
     // If user is logged in but on login/register/landing page, redirect to appropriate welcome page
     if (user && (location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/')) {
+      console.log('User logged in on login/register/landing page, redirecting to welcome page');
       if (profile?.role === 'developer') {
+        console.log('Redirecting to developer welcome');
         navigate('/welcome/developer');
       } else if (profile?.role === 'company') {
+        console.log('Redirecting to company welcome');
         navigate('/welcome/company');
       }
     }

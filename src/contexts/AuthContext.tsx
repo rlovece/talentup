@@ -32,6 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -43,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      console.log('Profile fetched from DB:', data);
       setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -53,20 +55,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state change:', event, 'Session:', !!session, 'User:', !!session?.user);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
           // Create temporary profile from user_metadata while DB profile loads
           const userRole = session.user.user_metadata?.role as 'developer' | 'company';
+          console.log('User role from metadata:', userRole);
           if (userRole) {
-            setProfile({
+            const tempProfile = {
               id: '', // Will be updated from DB
               user_id: session.user.id,
               role: userRole,
               created_at: '',
               updated_at: ''
-            });
+            };
+            console.log('Setting temporary profile:', tempProfile);
+            setProfile(tempProfile);
           }
           
           // Defer profile fetch to avoid auth state listener issues
