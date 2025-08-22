@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,8 +14,20 @@ export default function Login() {
     password: ''
   });
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, user, profile } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect authenticated users to their welcome page
+  useEffect(() => {
+    if (user && profile?.role) {
+      console.log('Login: User authenticated, redirecting to welcome page for role:', profile.role);
+      if (profile.role === 'developer') {
+        navigate('/welcome/developer');
+      } else if (profile.role === 'company') {
+        navigate('/welcome/company');
+      }
+    }
+  }, [user, profile, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({

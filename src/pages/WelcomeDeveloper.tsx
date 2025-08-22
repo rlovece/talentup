@@ -2,10 +2,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DarkModeToggle } from '@/components/DarkModeToggle';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Code, User, FileText, Github, Linkedin, LogOut } from 'lucide-react';
 
 export default function WelcomeDeveloper() {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
@@ -61,8 +63,12 @@ export default function WelcomeDeveloper() {
               <p className="text-muted-foreground mb-4">
                 Añade tu información personal, foto de perfil y datos de contacto.
               </p>
-              <Button variant="hero" className="w-full">
-                Ir al Perfil
+              <Button 
+                variant="hero" 
+                className="w-full"
+                onClick={() => navigate('/profile/developer')}
+              >
+                Ir a Mi Perfil
               </Button>
             </CardContent>
           </Card>
@@ -163,8 +169,9 @@ export default function WelcomeDeveloper() {
                 variant="secondary" 
                 size="lg"
                 className="bg-white text-primary hover:bg-white/90"
+                onClick={() => navigate('/profile/developer')}
               >
-                Completar Perfil Ahora
+                Ir a Mi Perfil
               </Button>
             </CardContent>
           </Card>

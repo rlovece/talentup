@@ -10,6 +10,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import WelcomeDeveloper from "./pages/WelcomeDeveloper";
 import WelcomeCompany from "./pages/WelcomeCompany";
+import DeveloperProfile from "./pages/DeveloperProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,14 @@ const App = () => (
               element={
                 <ProtectedRoute requireRole="company">
                   <WelcomeCompany />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile/developer" 
+              element={
+                <ProtectedRoute requireRole="developer">
+                  <DeveloperProfile />
                 </ProtectedRoute>
               } 
             />
