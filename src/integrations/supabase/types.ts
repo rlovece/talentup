@@ -50,6 +50,48 @@ export type Database = {
         }
         Relationships: []
       }
+      contacts: {
+        Row: {
+          company_id: string
+          created_at: string
+          developer_id: string
+          id: string
+          message: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          developer_id: string
+          id?: string
+          message: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          developer_id?: string
+          id?: string
+          message?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_contacts_company"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_contacts_developer"
+            columns: ["developer_id"]
+            isOneToOne: false
+            referencedRelation: "developers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       developers: {
         Row: {
           avatar_url: string | null

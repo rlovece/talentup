@@ -14,6 +14,7 @@ import DeveloperProfile from "./pages/DeveloperProfile";
 import CompanyProfile from "./pages/CompanyProfile";
 import Developers from "./pages/Developers";
 import DeveloperDetail from "./pages/DeveloperDetail";
+import ConfirmRegistration from "./pages/ConfirmRegistration";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/confirm" element={<ConfirmRegistration />} />
             <Route 
               path="/welcome/developer" 
               element={

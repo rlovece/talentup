@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { DarkModeToggle } from '@/components/DarkModeToggle';
+import { ContactDialog } from '@/components/ContactDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -151,10 +152,12 @@ export default function DeveloperDetail() {
                 </div>
 
                 {/* Contact Button */}
-                <Button variant="hero" size="lg" className="mb-4">
-                  <MessageCircle className="mr-2 h-5 w-5" />
-                  Contactar
-                </Button>
+                <div className="mb-4">
+                  <ContactDialog 
+                    developerId={developer.id} 
+                    developerName={developer.name || 'Desarrollador'}
+                  />
+                </div>
 
                 {/* Social Links */}
                 <div className="flex flex-wrap gap-3">
