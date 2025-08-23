@@ -12,6 +12,8 @@ import WelcomeDeveloper from "./pages/WelcomeDeveloper";
 import WelcomeCompany from "./pages/WelcomeCompany";
 import DeveloperProfile from "./pages/DeveloperProfile";
 import CompanyProfile from "./pages/CompanyProfile";
+import Developers from "./pages/Developers";
+import DeveloperDetail from "./pages/DeveloperDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,6 +58,22 @@ const App = () => (
               element={
                 <ProtectedRoute requireRole="company">
                   <CompanyProfile />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/developers" 
+              element={
+                <ProtectedRoute requireRole="company">
+                  <Developers />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/developers/:id" 
+              element={
+                <ProtectedRoute requireRole="company">
+                  <DeveloperDetail />
                 </ProtectedRoute>
               } 
             />

@@ -84,7 +84,11 @@ export default function WelcomeCompany() {
               <p className="text-muted-foreground mb-4">
                 Explora perfiles de desarrolladores y encuentra candidatos perfectos para tu equipo.
               </p>
-              <Button variant="hero" className="w-full">
+              <Button 
+                variant="hero" 
+                className="w-full"
+                onClick={() => navigate('/developers')}
+              >
                 Explorar Desarrolladores
               </Button>
             </CardContent>
