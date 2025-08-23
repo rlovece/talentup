@@ -11,17 +11,23 @@ import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
-import { Upload, Building2, Mail, ArrowLeft } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Upload, Building2, Mail, ArrowLeft, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const companyProfileSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   contact_email: z.string().email('Email inválido'),
   description: z.string().optional().or(z.literal('')),
-  sector: z.string().optional().or(z.literal(''))
+  sector: z.string().min(1, 'Selecciona al menos un sector').optional().or(z.literal(''))
 });
 
 type CompanyProfileFormData = z.infer<typeof companyProfileSchema>;
+
+interface Sector {
+  id: string;
+  name: string;
+}
 
 interface CompanyProfile {
   id: string;
@@ -38,6 +44,8 @@ export default function CompanyProfile() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<CompanyProfile | null>(null);
+  const [availableSectors, setAvailableSectors] = useState<Sector[]>([]);
+  const [sectorInput, setSectorInput] = useState('');
   const [uploading, setUploading] = useState(false);
 
   const { control, handleSubmit, formState: { errors }, setValue, watch } = useForm<CompanyProfileFormData>({
@@ -50,10 +58,11 @@ export default function CompanyProfile() {
     }
   });
 
-  // Load profile data
+  // Load profile data and available sectors
   useEffect(() => {
     if (user) {
       loadProfile();
+      loadSectors();
     }
   }, [user]);
 
@@ -83,6 +92,60 @@ export default function CompanyProfile() {
         variant: 'destructive'
       });
     }
+  };
+
+  const loadSectors = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('sectors')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      setAvailableSectors(data || []);
+    } catch (error: any) {
+      console.error('Error loading sectors:', error);
+    }
+  };
+
+  const addSector = async (sectorName: string) => {
+    if (!sectorName.trim()) return;
+
+    // Check if sector already exists
+    const existingSector = availableSectors.find(s => 
+      s.name.toLowerCase() === sectorName.toLowerCase()
+    );
+
+    if (existingSector) {
+      // Set the sector directly (single selection)
+      setValue('sector', existingSector.name);
+    } else {
+      // Create new sector
+      try {
+        const { data, error } = await supabase
+          .from('sectors')
+          .insert({ name: sectorName.trim() })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        setAvailableSectors(prev => [...prev, data]);
+        setValue('sector', data.name);
+
+        toast({
+          title: 'Sector añadido',
+          description: `"${data.name}" se ha añadido a la base de datos`
+        });
+      } catch (error: any) {
+        toast({
+          title: 'Error',
+          description: 'No se pudo añadir el sector',
+          variant: 'destructive'
+        });
+      }
+    }
+    setSectorInput('');
   };
 
   const uploadFile = async (file: File, bucket: string): Promise<string> => {
@@ -188,6 +251,11 @@ export default function CompanyProfile() {
       setLoading(false);
     }
   };
+
+  const filteredSectors = availableSectors.filter(sector =>
+    sector.name.toLowerCase().includes(sectorInput.toLowerCase()) &&
+    sector.name !== watch('sector')
+  );
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -301,23 +369,85 @@ export default function CompanyProfile() {
                 </div>
               </div>
 
-              {/* Sector */}
+              {/* Sector Section */}
               <div>
-                <Label htmlFor="sector">
-                  Sector (opcional)
-                </Label>
-                <Controller
-                  name="sector"
-                  control={control}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      id="sector"
-                      placeholder="ej: Tecnología, Finanzas, Salud..."
-                      className="mt-1"
-                    />
-                  )}
-                />
+                <Label className="text-base font-medium">Sector</Label>
+                
+                {/* Current Sector */}
+                {watch('sector') && (
+                  <div className="flex flex-wrap gap-2 mt-2 mb-4">
+                    <Badge variant="secondary" className="px-3 py-1">
+                      {watch('sector')}
+                      <button
+                        type="button"
+                        onClick={() => setValue('sector', '')}
+                        className="ml-2 hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  </div>
+                )}
+
+                {/* Sector Input */}
+                <div className="flex gap-2">
+                  <Input
+                    value={sectorInput}
+                    onChange={(e) => setSectorInput(e.target.value)}
+                    placeholder="Escribe un sector..."
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addSector(sectorInput);
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => addSector(sectorInput)}
+                    variant="outline"
+                  >
+                    Añadir
+                  </Button>
+                </div>
+
+                {/* Sector Suggestions */}
+                {sectorInput && (
+                  <div className="mt-2">
+                    <div className="max-h-32 overflow-y-auto border rounded-md bg-card">
+                      {availableSectors
+                        .filter(sector => 
+                          sector.name.toLowerCase().includes(sectorInput.toLowerCase()) &&
+                          sector.name !== watch('sector')
+                        )
+                        .slice(0, 10)
+                        .map(sector => (
+                        <button
+                          key={sector.id}
+                          type="button"
+                          onClick={() => {
+                            setValue('sector', sector.name);
+                            setSectorInput('');
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-muted transition-colors text-sm"
+                        >
+                          {sector.name}
+                        </button>
+                      ))}
+                      {sectorInput && !availableSectors.some(s => 
+                        s.name.toLowerCase() === sectorInput.toLowerCase()
+                      ) && (
+                        <div className="px-3 py-2 text-sm text-muted-foreground border-t">
+                          Presiona "Añadir" para crear "{sectorInput}"
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {errors.sector && (
+                  <p className="text-sm text-destructive mt-1">{errors.sector.message}</p>
+                )}
               </div>
 
               {/* Description */}
