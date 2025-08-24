@@ -37,8 +37,8 @@ export const PasswordResetModal = ({ isOpen, onClose }: PasswordResetModalProps)
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      const { error } = await supabase.functions.invoke('send-password-reset-code', {
+        body: { email }
       });
 
       if (error) {
@@ -49,15 +49,15 @@ export const PasswordResetModal = ({ isOpen, onClose }: PasswordResetModalProps)
         });
       } else {
         toast({
-          title: "Email enviado",
-          description: "Revisa tu email para el código de recuperación.",
+          title: "Código enviado",
+          description: "Revisa tu email para el código de verificación.",
         });
         setStep('code');
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Error al enviar el email de recuperación.",
+        description: "Error al enviar el código de verificación.",
         variant: "destructive"
       });
     } finally {
@@ -102,14 +102,18 @@ export const PasswordResetModal = ({ isOpen, onClose }: PasswordResetModalProps)
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
+      const { error } = await supabase.functions.invoke('verify-reset-code', {
+        body: { 
+          email, 
+          code, 
+          newPassword 
+        }
       });
 
       if (error) {
         toast({
           title: "Error",
-          description: error.message,
+          description: error.message || "Error al actualizar la contraseña.",
           variant: "destructive"
         });
       } else {
