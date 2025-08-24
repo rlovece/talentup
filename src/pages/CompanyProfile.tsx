@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { REQUIRE_EMAIL_CONFIRM_ON_CHANGE } from '@/config/auth';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Upload, Building2, Mail, ArrowLeft, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { EmailChangeConfirmModal } from '@/components/EmailChangeConfirmModal';
 
 const companyProfileSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -39,7 +41,7 @@ interface CompanyProfile {
 }
 
 export default function CompanyProfile() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -47,6 +49,8 @@ export default function CompanyProfile() {
   const [availableSectors, setAvailableSectors] = useState<Sector[]>([]);
   const [sectorInput, setSectorInput] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [showEmailConfirm, setShowEmailConfirm] = useState(false);
+  const [pendingEmailData, setPendingEmailData] = useState<any>(null);
 
   const { control, handleSubmit, formState: { errors }, setValue, watch } = useForm<CompanyProfileFormData>({
     resolver: zodResolver(companyProfileSchema),
@@ -216,6 +220,17 @@ export default function CompanyProfile() {
     setLoading(true);
 
     try {
+      // Check if email has changed
+      const emailChanged = data.contact_email !== profile?.contact_email && data.contact_email !== user.email;
+
+      if (emailChanged) {
+        // Show confirmation modal before changing email
+        setPendingEmailData(data);
+        setShowEmailConfirm(true);
+        setLoading(false);
+        return;
+      }
+
       // Update or create company profile
       const profileData = {
         user_id: user.id,
@@ -249,6 +264,83 @@ export default function CompanyProfile() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEmailChangeConfirm = async () => {
+    if (!pendingEmailData) return;
+    
+    setLoading(true);
+    setShowEmailConfirm(false);
+    
+    try {
+      if (REQUIRE_EMAIL_CONFIRM_ON_CHANGE) {
+        const { error: authError } = await supabase.auth.updateUser({
+          email: pendingEmailData.contact_email
+        });
+        if (authError) {
+          throw new Error(`Error al actualizar email de autenticación: ${authError.message}`);
+        }
+      } else {
+        const { data: fnData, error: fnError } = await supabase.functions.invoke('update-user-email', {
+          body: { newEmail: pendingEmailData.contact_email },
+        });
+        if (fnError) {
+          throw new Error(fnError.message || 'No se pudo actualizar el email sin confirmación');
+        }
+      }
+
+      toast({
+        title: 'Email actualizado',
+        description: REQUIRE_EMAIL_CONFIRM_ON_CHANGE
+          ? 'Se ha enviado un email de confirmación a tu nueva dirección. Confirma el cambio para completar la actualización.'
+          : 'Tu email de autenticación se actualizó inmediatamente.',
+        duration: 5000
+      });
+
+      // Continue with the rest of the profile update
+      await completeProfileUpdate(pendingEmailData);
+    } catch (error: any) {
+      console.error('Error updating email:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'No se pudo actualizar el email',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+      setPendingEmailData(null);
+    }
+  };
+
+  const completeProfileUpdate = async (data: any) => {
+    try {
+      // Update or create company profile
+      const profileData = {
+        user_id: user.id,
+        name: data.name,
+        contact_email: data.contact_email,
+        description: data.description || null,
+        sector: data.sector || null,
+        logo_url: profile?.logo_url // Logo is updated separately
+      };
+
+      const { error } = await supabase
+        .from('companies')
+        .update(profileData)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Perfil actualizado',
+        description: 'Tu perfil se ha guardado correctamente'
+      });
+
+      // Reload profile
+      loadProfile();
+    } catch (error: any) {
+      throw error;
     }
   };
 
@@ -481,9 +573,21 @@ export default function CompanyProfile() {
                 </Button>
               </div>
             </form>
+
+            <EmailChangeConfirmModal
+              isOpen={showEmailConfirm}
+              onClose={() => {
+                setShowEmailConfirm(false);
+                setPendingEmailData(null);
+              }}
+              onConfirm={handleEmailChangeConfirm}
+              currentEmail={user?.email || ''}
+              newEmail={pendingEmailData?.contact_email || ''}
+            />
           </CardContent>
         </Card>
       </div>
     </div>
   );
 }
+

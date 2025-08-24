@@ -57,6 +57,7 @@ export type Database = {
           developer_id: string
           id: string
           message: string
+          read: boolean
           updated_at: string
         }
         Insert: {
@@ -65,6 +66,7 @@ export type Database = {
           developer_id: string
           id?: string
           message: string
+          read?: boolean
           updated_at?: string
         }
         Update: {
@@ -73,6 +75,7 @@ export type Database = {
           developer_id?: string
           id?: string
           message?: string
+          read?: boolean
           updated_at?: string
         }
         Relationships: [

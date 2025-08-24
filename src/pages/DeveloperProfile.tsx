@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { REQUIRE_EMAIL_CONFIRM_ON_CHANGE } from '@/config/auth';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
 import { X, Upload, Github, Linkedin, User, Mail, FileText, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { EmailChangeConfirmModal } from '@/components/EmailChangeConfirmModal';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -42,7 +44,7 @@ interface DeveloperProfile {
 }
 
 export default function DeveloperProfile() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -53,6 +55,8 @@ export default function DeveloperProfile() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [showEmailConfirm, setShowEmailConfirm] = useState(false);
+  const [pendingEmailData, setPendingEmailData] = useState<any>(null);
 
   const { control, handleSubmit, formState: { errors }, setValue, watch } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -250,6 +254,17 @@ export default function DeveloperProfile() {
         setUploading(false);
       }
 
+      // Check if email has changed
+      const emailChanged = data.email !== profile?.email && data.email !== user.email;
+
+      if (emailChanged) {
+        // Show confirmation modal before changing email
+        setPendingEmailData(data);
+        setShowEmailConfirm(true);
+        setLoading(false);
+        return;
+      }
+
       // Update or create developer profile
       const profileData = {
         user_id: user.id,
@@ -265,7 +280,7 @@ export default function DeveloperProfile() {
       const { error } = await supabase
         .from('developers')
         .update(profileData)
-        .eq("user_id", user.id);;
+        .eq("user_id", user.id);
 
       if (error) throw error;
 
@@ -286,6 +301,95 @@ export default function DeveloperProfile() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEmailChangeConfirm = async () => {
+    if (!pendingEmailData) return;
+    
+    setLoading(true);
+    setShowEmailConfirm(false);
+    
+    try {
+      if (REQUIRE_EMAIL_CONFIRM_ON_CHANGE) {
+        const { error: authError } = await supabase.auth.updateUser({
+          email: pendingEmailData.email
+        });
+        if (authError) {
+          throw new Error(`Error al actualizar email de autenticación: ${authError.message}`);
+        }
+      } else {
+        const { data: fnData, error: fnError } = await supabase.functions.invoke('update-user-email', {
+          body: { newEmail: pendingEmailData.email },
+        });
+        if (fnError) {
+          throw new Error(fnError.message || 'No se pudo actualizar el email sin confirmación');
+        }
+      }
+
+      toast({
+        title: 'Email actualizado',
+        description: REQUIRE_EMAIL_CONFIRM_ON_CHANGE
+          ? 'Se ha enviado un email de confirmación a tu nueva dirección. Confirma el cambio para completar la actualización.'
+          : 'Tu email de autenticación se actualizó inmediatamente.',
+        duration: 5000
+      });
+
+      // Continue with the rest of the profile update
+      await completeProfileUpdate(pendingEmailData);
+    } catch (error: any) {
+      console.error('Error updating email:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'No se pudo actualizar el email',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+      setPendingEmailData(null);
+    }
+  };
+
+  const completeProfileUpdate = async (data: any) => {
+    try {
+      let cvUrl = profile?.cv_url;
+
+      // Upload CV if selected
+      if (cvFile) {
+        setUploading(true);
+        cvUrl = await uploadFile(cvFile, 'cvs', 'developer-cvs');
+        setUploading(false);
+      }
+
+      // Update or create developer profile
+      const profileData = {
+        user_id: user.id,
+        name: data.name,
+        email: data.email,
+        github_link: data.github_link || null,
+        linkedin_link: data.linkedin_link || null,
+        skills: data.skills,
+        avatar_url: profile?.avatar_url, // Avatar is updated separately
+        cv_url: cvUrl
+      };
+
+      const { error } = await supabase
+        .from('developers')
+        .update(profileData)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Perfil actualizado',
+        description: 'Tu perfil se ha guardado correctamente'
+      });
+
+      // Reload profile
+      loadProfile();
+      setCvFile(null);
+    } catch (error: any) {
+      throw error;
     }
   };
 
@@ -566,6 +670,17 @@ export default function DeveloperProfile() {
                 {loading ? 'Guardando...' : 'Guardar Perfil'}
               </Button>
             </form>
+
+            <EmailChangeConfirmModal
+              isOpen={showEmailConfirm}
+              onClose={() => {
+                setShowEmailConfirm(false);
+                setPendingEmailData(null);
+              }}
+              onConfirm={handleEmailChangeConfirm}
+              currentEmail={user?.email || ''}
+              newEmail={pendingEmailData?.email || ''}
+            />
           </CardContent>
         </Card>
       </div>
