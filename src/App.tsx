@@ -33,7 +33,9 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/confirm" element={<ConfirmRegistration />} />
             <Route path="/auth/confirm" element={<ConfirmRegistration />} />
+            <Route path="/auth/callback" element={<ConfirmRegistration />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route 
               path="/welcome/developer" 
               element={
