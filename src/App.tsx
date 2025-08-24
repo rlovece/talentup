@@ -32,6 +32,8 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/confirm" element={<ConfirmRegistration />} />
+            <Route path="/confirm-registration" element={<ConfirmRegistration />} />
+            <Route path="/auth/confirm" element={<ConfirmRegistration />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route 
               path="/welcome/developer" 

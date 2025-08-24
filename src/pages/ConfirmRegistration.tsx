@@ -13,22 +13,77 @@ export default function ConfirmRegistration() {
 
   useEffect(() => {
     const confirmUser = async () => {
-      const token_hash = searchParams.get('token_hash');
-      const type = searchParams.get('type');
+      // Parse both query and hash parameters (Supabase often uses hash #)
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+      const getParam = (key: string) => searchParams.get(key) || hashParams.get(key);
+
+      const token_hash = getParam('token_hash') || getParam('token');
+      const type = getParam('type');
+      const access_token = getParam('access_token');
+      const refresh_token = getParam('refresh_token');
+      const error_code = getParam('error_code');
+      const error_description = getParam('error_description');
+      
+      // Log all URL parameters for debugging
+      console.log('ConfirmRegistration - All search params:', Object.fromEntries(searchParams.entries()));
+      console.log('ConfirmRegistration - token_hash:', token_hash);
+      console.log('ConfirmRegistration - type:', type);
+      console.log('ConfirmRegistration - access_token:', access_token);
+      console.log('ConfirmRegistration - refresh_token:', refresh_token);
+      console.log('ConfirmRegistration - Current URL:', window.location.href);
+
+      // If Supabase returned an error in the URL, surface it clearly
+      if (error_code) {
+        console.error('ConfirmRegistration - Error from Supabase:', { error_code, error_description });
+        setStatus('error');
+        setMessage(error_description || 'Enlace de confirmación inválido.');
+        return;
+      }
+
+      // Handle different authentication scenarios
+      if (access_token && refresh_token) {
+        // This might be a direct token response from Supabase
+        try {
+          console.log('ConfirmRegistration - Attempting to set session with tokens');
+          const { data, error } = await supabase.auth.setSession({
+            access_token,
+            refresh_token
+          });
+          
+          if (error) {
+            console.error('ConfirmRegistration - Session error:', error);
+            setStatus('error');
+            setMessage(error.message);
+          } else {
+            console.log('ConfirmRegistration - Session set successfully:', data);
+            setStatus('success');
+            setMessage('¡Tu cuenta ha sido confirmada exitosamente!');
+          }
+          return;
+        } catch (error) {
+          console.error('ConfirmRegistration - Error setting session:', error);
+          setStatus('error');
+          setMessage('Ocurrió un error al confirmar tu cuenta.');
+          return;
+        }
+      }
 
       if (!token_hash || type !== 'signup') {
+        console.error('ConfirmRegistration - Invalid parameters:', { token_hash, type });
         setStatus('error');
-        setMessage('Enlace de confirmación inválido.');
+        setMessage('Enlace de confirmación inválido. Verifica que el enlace sea correcto o intenta registrarte nuevamente.');
         return;
       }
 
       try {
+        console.log('ConfirmRegistration - Attempting OTP verification');
         const { error } = await supabase.auth.verifyOtp({
           token_hash,
           type: 'signup'
         });
 
         if (error) {
+          console.error('ConfirmRegistration - OTP verification error:', error);
           if (error.message.includes('already been confirmed')) {
             setStatus('already-confirmed');
             setMessage('Tu cuenta ya ha sido confirmada anteriormente.');
@@ -37,6 +92,7 @@ export default function ConfirmRegistration() {
             setMessage(error.message);
           }
         } else {
+          console.log('ConfirmRegistration - OTP verification successful');
           setStatus('success');
           setMessage('¡Tu cuenta ha sido confirmada exitosamente!');
         }
@@ -122,19 +178,11 @@ export default function ConfirmRegistration() {
             {status !== 'loading' && (
               <div className="space-y-3">
                 <Button 
-                  onClick={() => navigate('/login')} 
+                  onClick={() => navigate('/')} 
                   className="w-full"
                   variant="default"
                 >
-                  Iniciar Sesión
-                </Button>
-                
-                <Button 
-                  onClick={() => navigate('/')} 
-                  variant="outline" 
-                  className="w-full"
-                >
-                  Volver al Inicio
+                  Comencemos
                 </Button>
               </div>
             )}
@@ -155,13 +203,6 @@ export default function ConfirmRegistration() {
             )}
           </CardContent>
         </Card>
-
-        {/* Footer */}
-        <div className="text-center mt-8">
-          <p className="text-sm text-muted-foreground">
-            ¿Tienes problemas? Contacta nuestro soporte técnico.
-          </p>
-        </div>
       </div>
     </div>
   );
