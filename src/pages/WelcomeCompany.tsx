@@ -2,12 +2,55 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DarkModeToggle } from '@/components/DarkModeToggle';
 import { useAuth } from '@/contexts/AuthContext';
-import { Users, Building, Search, Star, LogOut } from 'lucide-react';
+import { Users, Building, Search, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function WelcomeCompany() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  
+  const [companyName, setCompanyName] = useState<string>('');
+  const [developersCount, setDevelopersCount] = useState<number>(0);
+  const [technologiesCount, setTechnologiesCount] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user) return;
+
+      // Fetch company data
+      const { data: company } = await supabase
+        .from('companies')
+        .select('name')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (company?.name) {
+        setCompanyName(company.name);
+      }
+
+      // Fetch developers count
+      const { count: devCount } = await supabase
+        .from('developers')
+        .select('*', { count: 'exact', head: true });
+
+      if (devCount !== null) {
+        setDevelopersCount(devCount);
+      }
+
+      // Fetch unique technologies count
+      const { count: techCount } = await supabase
+        .from('skills')
+        .select('*', { count: 'exact', head: true });
+
+      if (techCount !== null) {
+        setTechnologiesCount(techCount);
+      }
+    };
+
+    fetchData();
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -40,8 +83,8 @@ export default function WelcomeCompany() {
             <Users className="h-12 w-12 text-white" />
           </div>
           
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-secondary bg-clip-text text-transparent">
-            ¡Bienvenida, Empresa!
+          <h1 className="text-4xl md:text-5xl font-bold mb-8 bg-gradient-secondary bg-clip-text text-transparent leading-relaxed py-4">
+            ¡Gracias por elegirnos{companyName ? `, ${companyName}` : ''}!
           </h1>
           
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -101,32 +144,18 @@ export default function WelcomeCompany() {
             Encuentra el Talento que Necesitas
           </h2>
           
-          <div className="grid md:grid-cols-4 gap-6 text-center">
+          <div className="grid md:grid-cols-2 gap-6 text-center max-w-2xl mx-auto">
             <Card className="bg-gradient-primary text-white border-0">
               <CardContent className="p-6">
-                <div className="text-3xl font-bold mb-2">500+</div>
+                <div className="text-3xl font-bold mb-2">{developersCount}</div>
                 <div className="text-primary-foreground/90">Desarrolladores Activos</div>
               </CardContent>
             </Card>
 
             <Card className="bg-gradient-secondary text-white border-0">
               <CardContent className="p-6">
-                <div className="text-3xl font-bold mb-2">50+</div>
+                <div className="text-3xl font-bold mb-2">{technologiesCount}</div>
                 <div className="text-secondary-foreground/90">Tecnologías Representadas</div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-hero text-white border-0">
-              <CardContent className="p-6">
-                <div className="text-3xl font-bold mb-2">95%</div>
-                <div className="text-white/90">Tasa de Éxito</div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-primary text-white border-0">
-              <CardContent className="p-6">
-                <div className="text-3xl font-bold mb-2">24h</div>
-                <div className="text-primary-foreground/90">Tiempo Promedio de Respuesta</div>
               </CardContent>
             </Card>
           </div>

@@ -141,7 +141,7 @@ export default function WelcomeDeveloper() {
             <Code className="h-12 w-12 text-white" />
           </div>
           
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold mb-8 bg-gradient-primary bg-clip-text text-transparent leading-relaxed py-4">
             {loading ? '¡Éxitos!' : `¡Éxitos ${developer?.name || ''}!`}
           </h1>
           
