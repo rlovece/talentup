@@ -15,6 +15,7 @@ import CompanyProfile from "./pages/CompanyProfile";
 import Developers from "./pages/Developers";
 import DeveloperDetail from "./pages/DeveloperDetail";
 import ConfirmRegistration from "./pages/ConfirmRegistration";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/confirm" element={<ConfirmRegistration />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route 
               path="/welcome/developer" 
               element={

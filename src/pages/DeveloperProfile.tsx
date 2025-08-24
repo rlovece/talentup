@@ -13,9 +13,10 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
-import { X, Upload, Github, Linkedin, User, Mail, FileText, ArrowLeft } from 'lucide-react';
+import { X, Upload, Github, Linkedin, User, Mail, FileText, ArrowLeft, Key } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { EmailChangeConfirmModal } from '@/components/EmailChangeConfirmModal';
+import { ChangePasswordModal } from '@/components/ChangePasswordModal';
 import { AppHeader } from '@/components/AppHeader';
 
 const profileSchema = z.object({
@@ -57,6 +58,7 @@ export default function DeveloperProfile() {
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [showEmailConfirm, setShowEmailConfirm] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const [pendingEmailData, setPendingEmailData] = useState<any>(null);
 
   const { control, handleSubmit, formState: { errors }, setValue, watch } = useForm<ProfileFormData>({
@@ -663,6 +665,22 @@ export default function DeveloperProfile() {
                 </div>
               </div>
 
+              {/* Security Section */}
+              <div className="border-t pt-6">
+                <Label className="text-base font-medium">Seguridad</Label>
+                <div className="mt-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowChangePassword(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <Key className="h-4 w-4" />
+                    Cambiar contraseña
+                  </Button>
+                </div>
+              </div>
+
               {/* Submit Button */}
               <Button 
                 type="submit" 
@@ -682,6 +700,11 @@ export default function DeveloperProfile() {
               onConfirm={handleEmailChangeConfirm}
               currentEmail={user?.email || ''}
               newEmail={pendingEmailData?.email || ''}
+            />
+
+            <ChangePasswordModal
+              isOpen={showChangePassword}
+              onClose={() => setShowChangePassword(false)}
             />
           </CardContent>
         </Card>

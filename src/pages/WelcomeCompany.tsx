@@ -51,7 +51,7 @@ export default function WelcomeCompany() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-6 max-w-4xl mx-auto">
           <Card className="hover:shadow-secondary transition-all duration-300 hover:scale-105">
             <CardHeader>
               <div className="w-12 h-12 bg-gradient-secondary rounded-lg flex items-center justify-center mb-2">
@@ -90,23 +90,6 @@ export default function WelcomeCompany() {
                 onClick={() => navigate('/developers')}
               >
                 Explorar Desarrolladores
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-secondary transition-all duration-300 hover:scale-105">
-            <CardHeader>
-              <div className="w-12 h-12 bg-gradient-hero rounded-lg flex items-center justify-center mb-2">
-                <Star className="h-6 w-6 text-white" />
-              </div>
-              <CardTitle>Destacar Empresa</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4">
-                Mejora la visibilidad de tu empresa y atrae a los mejores candidatos.
-              </p>
-              <Button variant="outline" className="w-full">
-                Saber Más
               </Button>
             </CardContent>
           </Card>

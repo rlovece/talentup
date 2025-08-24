@@ -13,9 +13,10 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Building2, Mail, ArrowLeft, X } from 'lucide-react';
+import { Upload, Building2, Mail, ArrowLeft, X, Key } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { EmailChangeConfirmModal } from '@/components/EmailChangeConfirmModal';
+import { ChangePasswordModal } from '@/components/ChangePasswordModal';
 import { AppHeader } from '@/components/AppHeader';
 
 const companyProfileSchema = z.object({
@@ -51,6 +52,7 @@ export default function CompanyProfile() {
   const [sectorInput, setSectorInput] = useState('');
   const [uploading, setUploading] = useState(false);
   const [showEmailConfirm, setShowEmailConfirm] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const [pendingEmailData, setPendingEmailData] = useState<any>(null);
 
   const { control, handleSubmit, formState: { errors }, setValue, watch } = useForm<CompanyProfileFormData>({
@@ -564,6 +566,22 @@ export default function CompanyProfile() {
                 />
               </div>
 
+              {/* Security Section */}
+              <div className="border-t pt-6">
+                <Label className="text-base font-medium">Seguridad</Label>
+                <div className="mt-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowChangePassword(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <Key className="h-4 w-4" />
+                    Cambiar contraseña
+                  </Button>
+                </div>
+              </div>
+
               {/* Submit Button */}
               <div className="flex justify-end">
                 <Button 
@@ -585,6 +603,11 @@ export default function CompanyProfile() {
               onConfirm={handleEmailChangeConfirm}
               currentEmail={user?.email || ''}
               newEmail={pendingEmailData?.contact_email || ''}
+            />
+
+            <ChangePasswordModal
+              isOpen={showChangePassword}
+              onClose={() => setShowChangePassword(false)}
             />
           </CardContent>
         </Card>
