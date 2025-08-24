@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { Upload, Building2, Mail, ArrowLeft, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { EmailChangeConfirmModal } from '@/components/EmailChangeConfirmModal';
+import { AppHeader } from '@/components/AppHeader';
 
 const companyProfileSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -350,8 +351,9 @@ export default function CompanyProfile() {
   );
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-background">
+      <AppHeader />
+      <div className="max-w-4xl mx-auto p-4">
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">

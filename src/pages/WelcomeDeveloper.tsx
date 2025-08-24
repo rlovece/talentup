@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DarkModeToggle } from '@/components/DarkModeToggle';
 import { ContactDetailModal } from '@/components/ContactDetailModal';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Code, User, FileText, Github, Linkedin, LogOut, Mail, Eye } from 'lucide-react';
@@ -34,6 +35,8 @@ export default function WelcomeDeveloper() {
   const [loading, setLoading] = useState(true);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showContactDetail, setShowContactDetail] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const contactsPerPage = 3;
 
   useEffect(() => {
     if (user) {
@@ -97,6 +100,16 @@ export default function WelcomeDeveloper() {
     ));
   };
 
+  // Pagination logic
+  const totalPages = Math.ceil(contacts.length / contactsPerPage);
+  const startIndex = (currentPage - 1) * contactsPerPage;
+  const endIndex = startIndex + contactsPerPage;
+  const currentContacts = contacts.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -151,7 +164,7 @@ export default function WelcomeDeveloper() {
             </div>
             
             <div className="grid gap-4">
-              {contacts.map((contact) => (
+              {currentContacts.map((contact) => (
                 <Card key={contact.id} className={`transition-all duration-300 hover:shadow-lg ${!contact.read ? 'ring-2 ring-primary/50' : ''}`}>
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
@@ -172,7 +185,13 @@ export default function WelcomeDeveloper() {
                         <div>
                           <h3 className="font-semibold">{contact.companies.name}</h3>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(contact.created_at).toLocaleDateString('es-ES')}
+                            {new Date(contact.created_at).toLocaleDateString('es-ES', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
                           </p>
                         </div>
                       </div>
@@ -196,6 +215,41 @@ export default function WelcomeDeveloper() {
                 </Card>
               ))}
             </div>
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-6">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => handlePageChange(page)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </div>
         )}
 
