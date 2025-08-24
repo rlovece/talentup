@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { DarkModeToggle } from '@/components/DarkModeToggle';
+import { PasswordResetModal } from '@/components/PasswordResetModal';
 import { Code, ArrowLeft, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -15,6 +16,7 @@ export default function Login() {
   });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
   const { signIn, user, profile } = useAuth();
   const navigate = useNavigate();
 
@@ -140,6 +142,16 @@ export default function Login() {
                 </Button>
               </form>
 
+              <div className="mt-4 text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordReset(true)}
+                  className="text-sm text-primary hover:underline"
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
+
               <div className="mt-6 text-center text-sm text-muted-foreground">
                 ¿No tienes una cuenta?{' '}
                 <Link to="/register" className="text-primary hover:underline">
@@ -150,6 +162,11 @@ export default function Login() {
           </Card>
         </div>
       </div>
+
+      <PasswordResetModal 
+        isOpen={showPasswordReset}
+        onClose={() => setShowPasswordReset(false)}
+      />
     </div>
   );
 }
