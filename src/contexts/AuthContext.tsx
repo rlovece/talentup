@@ -120,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const redirectUrl = `${window.location.origin}/confirm`;
     console.log('SignUp - Redirect URL set to:', redirectUrl);
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -132,21 +132,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    if (error) {
+    console.log("👉 Resultado signUp:", { data, error });
+
+     if (error) {
       toast({
         title: "Error en el registro",
         description: error.message,
         variant: "destructive"
       });
-    } else {
-      toast({
-        title: "¡Registro exitoso!",
-        description: "Revisa tu email para confirmar tu cuenta.",
-      });
+      return { error };
     }
 
-    return { error };
+    // caso: usuario ya existe (session null pero user presente)
+    if (data.user && !data.session) {
+      toast({
+        title: "Email ya registrado",
+        description: "Ese correo ya está en uso. Inicia sesión o confirma tu cuenta desde el email.",
+        variant: "destructive"
+      });
+      return { error: new Error("Email ya registrado") };
+    }
+
+    toast({
+      title: "¡Registro exitoso!",
+      description: "Revisa tu email para confirmar tu cuenta.",
+    });
+
+    return { error: null };
   };
+
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
