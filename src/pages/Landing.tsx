@@ -62,7 +62,7 @@ export default function Landing() {
       {/* Features Section */}
       <section className="py-20 px-4 bg-muted/20">
         <div className="container mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-16 bg-gradient-primary bg-clip-text text-transparent">
+          <h2 className="text-4xl font-bold text-center mb-16 bg-gradient-primary bg-clip-text text-transparent py-4">
             ¿Por qué elegir TalentUp?
           </h2>
           
