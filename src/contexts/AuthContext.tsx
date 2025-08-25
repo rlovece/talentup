@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 
 interface Profile {
   id: string;
@@ -19,6 +20,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, name: string, role: 'developer' | 'company') => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  resendConfirmation: (email: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -148,7 +150,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast({
         title: "Email ya registrado",
         description: "Ese correo ya está en uso. Inicia sesión o confirma tu cuenta desde el email.",
-        variant: "destructive"
+        variant: "destructive",
+        action: (
+          <ToastAction 
+            altText="Reenviar email de confirmación"
+            onClick={() => resendConfirmation(email)}
+          >
+            Reenviar email
+          </ToastAction>
+        )
       });
       return { error: new Error("Email ya registrado") };
     }
@@ -186,6 +196,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
   };
 
+  const resendConfirmation = async (email: string) => {
+    const redirectUrl = `${window.location.origin}/confirm`;
+    
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+      options: {
+        emailRedirectTo: redirectUrl
+      }
+    });
+
+    if (error) {
+      // Handle rate limiting error specifically
+      if (error.message.includes('For security purposes') || error.message.includes('rate limit')) {
+        toast({
+          title: "Espera un momento",
+          description: "Por seguridad, debes esperar antes de solicitar otro email. Es posible que ya se haya enviado uno.",
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "Error al reenviar",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
+      return { error };
+    }
+
+    toast({
+      title: "Email reenviado",
+      description: "Se ha enviado un nuevo email de confirmación. Revisa tu bandeja de entrada.",
+    });
+
+    return { error: null };
+  };
+
   const value: AuthContextType = {
     user,
     session,
@@ -193,7 +240,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     signUp,
     signIn,
-    signOut
+    signOut,
+    resendConfirmation
   };
 
   return (
